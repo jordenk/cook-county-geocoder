@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -35,8 +36,8 @@ type Address struct {
 	zip5         string
 	zipLast4     string
 	// Rounding errors are not a problem for coordinates
-	longitude float32
-	latitude  float32
+	longitude float64
+	latitude  float64
 }
 
 func CsvReader(fileName string) {
@@ -72,11 +73,20 @@ func CsvReader(fileName string) {
 			log.Println(err)
 			continue
 		}
-		// TODO validate address number, lat, long and transform
+
+		_, err = transformRawToAddress(&rawCsv)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		// TODO send address to channel. May need to also send a complete signal with valid address count.
 	}
 }
 
 // Validation functions for all data sources.
+
+// checkRequiredFields inspects required fields and combines missing fields into a single error message.
 func checkRequiredFields(data *RawData) error {
 	missingFields := make([]string, 0, 7)
 	if isEmptyString(data.number) {
@@ -107,12 +117,59 @@ func checkRequiredFields(data *RawData) error {
 	return nil
 }
 
+// transformRawToAddress converts RawData strings to the desired data type, eagerly returning errors. If all validation
+// is passed, then an Address is returned.
+func transformRawToAddress(raw *RawData) (Address, error) {
+	const MaxLocation = 90.0
+	const MinLocation = -90.0
+
+	// TODO clean number for letters, .5, 1/2
+	num, err := strconv.Atoi(raw.number)
+	if err != nil {
+		return Address{}, fmt.Errorf("could not parse address number to int. number- %s full struct- %v", raw.number, raw)
+	}
+
+	long, err := strconv.ParseFloat(raw.longitude, 64)
+	if err != nil {
+		return Address{}, fmt.Errorf("could not parse address longitude to float64. longitude- %s full struct- %v", raw.longitude, raw)
+	}
+
+	if long > MaxLocation || long < MinLocation {
+		return Address{}, fmt.Errorf("longitude is outside of logical range. longitude- %f full struct- %v", long, raw)
+	}
+
+	lat, err := strconv.ParseFloat(raw.latitude, 64)
+	if err != nil {
+		return Address{}, fmt.Errorf("could not parse address latitude to float64. latitude- %s full struct- %v", raw.latitude, raw)
+	}
+
+	if lat > MaxLocation || lat < MinLocation {
+		return Address{}, fmt.Errorf("latitude is outside of logical range. latitude- %f full struct- %v", lat, raw)
+	}
+
+	validAddress := Address{
+		number:       num,
+		streetPrefix: raw.streetPrefix,
+		street:       raw.street,
+		streetSuffix: raw.streetSuffix,
+		city:         raw.city,
+		state:        raw.state,
+		zip5:         raw.zip5,
+		zipLast4:     raw.zipLast4,
+		longitude:    long,
+		latitude:     lat,
+	}
+	return validAddress, nil
+}
+
 func isEmptyString(s string) bool {
 	return len(strings.TrimSpace(s)) == 0
 }
 
 // Data source specific data extraction functions. Could be generic with data source specific parameters- cross that bridge
 // when adding new source.
+
+// checkCookCountyHeaders is called on the header row of the Cook County CSV to make sure columns are correctly mapped.
 func checkCookCountyHeaders(data *RawData) error {
 	expected := RawData{
 		number:       "ADDRNOCOM",
@@ -132,7 +189,8 @@ func checkCookCountyHeaders(data *RawData) error {
 	return fmt.Errorf("error mapping header columns. expected: %v actual :%v", expected, *data)
 }
 
-// This function must be called on both the header and non-header row to ensure data integrity.
+// buildCookCountyRaw contains the column mapping for the Cook County CSV data. It must be called on both the header
+// and non-header row to ensure data integrity.
 func buildCookCountyRaw(row []string) RawData {
 	return RawData{
 		number:       row[3],
