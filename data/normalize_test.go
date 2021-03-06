@@ -206,6 +206,44 @@ func TestTransformRawToAddressWithOutOfRangeLatLongValues(t *testing.T) {
 	}
 }
 
+func TestCleanseDataSourceUsingSplitCriteria(t *testing.T) {
+	rawWithSpace := "12345 1/2"
+	if cleanseAddressNumber(rawWithSpace) != "12345" {
+		t.Errorf("Expected string before space.")
+	}
+
+	rawWithDecimal := "999.5"
+	if cleanseAddressNumber(rawWithDecimal) != "999" {
+		t.Errorf("Expected string before decimal.")
+	}
+}
+
+func TestCleanseDataSourceWithLetters(t *testing.T) {
+	rawWithLetters := "12345ABCdef GHIJ  "
+	if cleanseAddressNumber(rawWithLetters) != "12345" {
+		t.Errorf("Expected string without letters and spaces.")
+	}
+}
+
+func TestCleanseDataSourceWithValid(t *testing.T) {
+	valid := "12345"
+	if cleanseAddressNumber(valid) != "12345" {
+		t.Errorf("Expected string to be unaltered.")
+	}
+
+	validWithSpaces := "77777    "
+	if cleanseAddressNumber(validWithSpaces) != "77777" {
+		t.Errorf("Expected string to be trimmed.")
+	}
+
+	// This is likely a fat finger in the data, and intended to be a half address. It shouldn't be altered as it cannot
+	// be assumed that this is an input error.
+	validCannotBeSplit := "777771/2"
+	if cleanseAddressNumber(validCannotBeSplit) != validCannotBeSplit {
+		t.Errorf("Expected string to be unaltered as fractional address cannot be assumed.")
+	}
+}
+
 func buildRawData(number string, longitude string, latitude string) RawData {
 	return RawData{
 		number:       number,

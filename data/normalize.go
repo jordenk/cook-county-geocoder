@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -87,7 +88,12 @@ func CsvReader(fileName string) {
 // Validation functions for all data sources.
 
 // checkRequiredFields inspects required fields and combines missing fields into a single error message.
+// Future enhancement- some required fields may be recoverable (state, city, zip5) by combining with other sources.
 func checkRequiredFields(data *RawData) error {
+	isEmptyString := func(s string) bool {
+		return len(strings.TrimSpace(s)) == 0
+	}
+
 	missingFields := make([]string, 0, 7)
 	if isEmptyString(data.number) {
 		missingFields = append(missingFields, "number")
@@ -123,10 +129,12 @@ func transformRawToAddress(raw *RawData) (Address, error) {
 	const MaxLocation = 90.0
 	const MinLocation = -90.0
 
-	// TODO clean number for letters, .5, 1/2
-	num, err := strconv.Atoi(raw.number)
+	// Calling cleanseAddressNumber works with a single Cook County data source. This will likely need to be moved when adding
+	// more data sources
+	cleanNumber := cleanseAddressNumber(raw.number)
+	num, err := strconv.Atoi(cleanNumber)
 	if err != nil {
-		return Address{}, fmt.Errorf("could not parse address number to int. number- %s full struct- %v", raw.number, raw)
+		return Address{}, fmt.Errorf("could not parse address number to int. cleansed number- %s raw number- %s full struct- %v", cleanNumber, raw.number, raw)
 	}
 
 	long, err := strconv.ParseFloat(raw.longitude, 64)
@@ -162,8 +170,17 @@ func transformRawToAddress(raw *RawData) (Address, error) {
 	return validAddress, nil
 }
 
-func isEmptyString(s string) bool {
-	return len(strings.TrimSpace(s)) == 0
+// cleanseAddressNumber attempts to get a string that can be parsed to an int based on known data issues.
+func cleanseAddressNumber(input string) string {
+	// Some address have a fraction or decimal in them. Take the first part.
+	partialAddressSplit := func(r rune) bool {
+		return r == '.' || r == ' '
+	}
+	numberHead := strings.FieldsFunc(input, partialAddressSplit)[0]
+
+	r := regexp.MustCompile("[a-zA-Z]|-")
+	lettersRemoved := r.ReplaceAllString(numberHead, "")
+	return strings.TrimSpace(lettersRemoved)
 }
 
 // Data source specific data extraction functions. Could be generic with data source specific parameters- cross that bridge
