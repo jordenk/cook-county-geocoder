@@ -41,7 +41,7 @@ type Address struct {
 	latitude  float64
 }
 
-func CsvReader(fileName string) {
+func CsvReader(fileName string, normalizedOutput chan<- Address, errorOutput chan<- string, complete chan <- bool) {
 	csvFile, err := os.Open(fileName)
 	if err != nil {
 		log.Fatal("Could not read CSV file: ", fileName, err)
@@ -59,6 +59,9 @@ func CsvReader(fileName string) {
 		log.Fatal(err)
 	}
 
+	normalizedAddressCount := 0
+	errorCount := 0
+
 	for {
 		// Read each record from csv
 		record, err := reader.Read()
@@ -71,18 +74,28 @@ func CsvReader(fileName string) {
 		rawCsv := buildCookCountyRaw(record)
 		err = checkRequiredFields(&rawCsv)
 		if err != nil {
-			log.Println(err)
+			errorOutput <- fmt.Sprintf("Error: %s | Original line: %s", err.Error(), strings.Join(record, ","))
+			errorCount++
 			continue
 		}
 
-		_, err = transformRawToAddress(&rawCsv)
+		normalizedAddress, err := transformRawToAddress(&rawCsv)
 		if err != nil {
-			log.Println(err)
+			errorOutput <- fmt.Sprintf("Error: %s | Original line: %s", err.Error(), strings.Join(record, ","))
+			errorCount++
 			continue
 		}
 
-		// TODO send address to channel. May need to also send a complete signal with valid address count.
+		normalizedAddressCount++
+		normalizedOutput <- normalizedAddress
 	}
+
+	log.Printf("Finished writing %d addresses to output channel\n", normalizedAddressCount)
+	log.Printf("Total errors: %d\n", errorCount)
+	complete <- true
+	close(errorOutput)
+	close(normalizedOutput)
+	close(complete)
 }
 
 // Validation functions for all data sources.

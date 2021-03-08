@@ -1,4 +1,5 @@
 # local data files used while prototyping
 Address_Points.csv
 output.jsonl
+errors.jsonl
 .idea/
