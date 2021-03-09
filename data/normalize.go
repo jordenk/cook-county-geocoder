@@ -88,30 +88,26 @@ func CsvReader(fileName string, normalizedOutput chan<- Address, errorOutput cha
 // checkRequiredFields inspects required fields and combines missing fields into a single error message.
 // Future enhancement- some required fields may be recoverable (state, city, zip5) by combining with other sources.
 func checkRequiredFields(data *RawData) error {
-	isEmptyString := func(s string) bool {
-		return len(strings.TrimSpace(s)) == 0
-	}
-
 	missingFields := make([]string, 0, 7)
-	if isEmptyString(data.number) {
+	if data.number == "" {
 		missingFields = append(missingFields, "number")
 	}
-	if isEmptyString(data.street) {
+	if data.street == ""  {
 		missingFields = append(missingFields, "street")
 	}
-	if isEmptyString(data.city) {
+	if data.city == ""  {
 		missingFields = append(missingFields, "city")
 	}
-	if isEmptyString(data.state) {
+	if data.state == "" {
 		missingFields = append(missingFields, "state")
 	}
-	if isEmptyString(data.zip5) {
+	if data.zip5 == "" {
 		missingFields = append(missingFields, "zip5")
 	}
-	if isEmptyString(data.longitude) {
+	if data.longitude =="" {
 		missingFields = append(missingFields, "longitude")
 	}
-	if isEmptyString(data.latitude) {
+	if data.latitude == "" {
 		missingFields = append(missingFields, "latitude")
 	}
 	if len(missingFields) > 0 {
@@ -208,15 +204,15 @@ func checkCookCountyHeaders(data *RawData) error {
 // and non-header row to ensure data integrity.
 func buildCookCountyRaw(row []string) RawData {
 	return RawData{
-		number:       row[3],
-		streetPrefix: row[4],
-		street:       row[5],
-		streetSuffix: row[6],
-		city:         row[10],
-		state:        row[12],
-		zip5:         row[13],
-		zipLast4:     row[14],
-		longitude:    row[21],
-		latitude:     row[22],
+		number:       strings.TrimSpace(row[3]),
+		streetPrefix: strings.TrimSpace(row[4]),
+		street:       strings.TrimSpace(row[5]),
+		streetSuffix: strings.TrimSpace(row[6]),
+		city:         strings.TrimSpace(row[10]),
+		state:        strings.TrimSpace(row[12]),
+		zip5:         strings.TrimSpace(row[13]),
+		zipLast4:     strings.TrimSpace(row[14]),
+		longitude:    strings.TrimSpace(row[21]),
+		latitude:     strings.TrimSpace(row[22]),
 	}
 }
