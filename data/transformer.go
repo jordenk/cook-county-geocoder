@@ -4,7 +4,7 @@ package data
 // data from different sources.
 func (receiver Address) ToEsAddress() EsAddress {
 	return EsAddress{
-		Number:       0,
+		Number:       receiver.Number,
 		StreetPrefix: receiver.StreetPrefix,
 		Street:       receiver.Street,
 		StreetSuffix: receiver.StreetSuffix,

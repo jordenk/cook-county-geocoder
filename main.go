@@ -2,7 +2,6 @@ package main
 
 import (
 	"cook-county-geocoder/data"
-	"encoding/json"
 	"fmt"
 	"os"
 )
@@ -15,25 +14,22 @@ func main() {
 
 	go data.CsvReader(fileName, normalizedChannel, errorChannel, completeChannel)
 
-	// TODO wire to ES module instead of writing files.
-	validAddress, err := os.OpenFile("data/valid.jsonl", 1, 0666)
-	if err != nil {
-		panic(err)
-	}
+
+	// TODO write to a configurable output. Local file or S3.
 	errors, err := os.OpenFile("data/errors.jsonl", 1, 0666)
 	if err != nil {
 		panic(err)
 	}
+
+	// Quick hack. TODO use a channel instead of building a huge slice.
+	bigSlice := make([]data.EsAddress, 2341113)
 
 	completeChannelOpen := true
 	for completeChannelOpen {
 		select {
 		case n := <-normalizedChannel:
 			esDoc := data.Address.ToEsAddress(n)
-			b, _ := json.Marshal(esDoc)
-			if _, err := validAddress.WriteString(string(b) + "\n"); err != nil {
-				panic(err)
-			}
+			bigSlice = append(bigSlice, esDoc)
 		case e := <-errorChannel:
 			str := fmt.Sprint(e)
 			if _, err := errors.WriteString(str + "\n"); err != nil {
@@ -43,6 +39,10 @@ func main() {
 		}
 	}
 
-	_ = validAddress.Close()
 	_ = errors.Close()
+
+	// TODO Requires index to be manually created, for now.
+	client := data.BuildEsClient()
+	data.BulkIndexEs(client, "address", &bigSlice)
+	// TODO log or collect errors 2021/03/09 08:01:28 Indexed [3,625,463] documents with [56,765] errors in 46.814s (77443 docs/sec)
 }

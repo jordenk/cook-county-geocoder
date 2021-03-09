@@ -1,0 +1,37 @@
+{
+  "settings": {
+    "number_of_shards": 2,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "number": {
+        "type": "integer"
+      },
+      "street_prefix": {
+        "type": "keyword"
+      },
+      "street": {
+        "type": "text"
+      },
+      "street_suffix": {
+        "type": "text"
+      },
+      "city": {
+        "type": "text"
+      },
+      "state": {
+        "type": "keyword"
+      },
+      "zip_5": {
+        "type": "keyword"
+      },
+      "zip_last_4": {
+        "enabled": false
+      },
+      "lat_long": {
+        "type": "geo_point"
+      }
+    }
+  }
+}
