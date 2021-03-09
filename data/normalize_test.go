@@ -129,16 +129,16 @@ func TestTransformRawToAddressWithValidInput(t *testing.T) {
 	validRawInput := buildRawData("1234", "57.684512", "-15.24568")
 
 	expected := Address{
-		number:       1234,
-		streetPrefix: "streetPrefix",
-		street:       "street",
-		streetSuffix: "streetSuffix",
-		city:         "city",
-		state:        "state",
-		zip5:         "zip5",
-		zipLast4:     "zipLast4",
-		longitude:    57.684512,
-		latitude:     -15.24568,
+		Number:       1234,
+		StreetPrefix: "streetPrefix",
+		Street:       "street",
+		StreetSuffix: "streetSuffix",
+		City:         "city",
+		State:        "state",
+		Zip5:         "zip5",
+		ZipLast4:     "zipLast4",
+		Longitude:    57.684512,
+		Latitude:     -15.24568,
 	}
 
 
