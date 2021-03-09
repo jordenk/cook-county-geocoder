@@ -26,21 +26,6 @@ type RawData struct {
 	latitude     string
 }
 
-// Represents a validated address.
-type Address struct {
-	number       int
-	streetPrefix string
-	street       string
-	streetSuffix string
-	city         string
-	state        string
-	zip5         string
-	zipLast4     string
-	// Rounding errors are not a problem for coordinates
-	longitude float64
-	latitude  float64
-}
-
 func CsvReader(fileName string, normalizedOutput chan<- Address, errorOutput chan<- string, complete chan <- bool) {
 	csvFile, err := os.Open(fileName)
 	if err != nil {
@@ -169,16 +154,16 @@ func transformRawToAddress(raw *RawData) (Address, error) {
 	}
 
 	validAddress := Address{
-		number:       num,
-		streetPrefix: raw.streetPrefix,
-		street:       raw.street,
-		streetSuffix: raw.streetSuffix,
-		city:         raw.city,
-		state:        raw.state,
-		zip5:         raw.zip5,
-		zipLast4:     raw.zipLast4,
-		longitude:    long,
-		latitude:     lat,
+		Number:       num,
+		StreetPrefix: raw.streetPrefix,
+		Street:       raw.street,
+		StreetSuffix: raw.streetSuffix,
+		City:         raw.city,
+		State:        raw.state,
+		Zip5:         raw.zip5,
+		ZipLast4:     raw.zipLast4,
+		Longitude:    long,
+		Latitude:     lat,
 	}
 	return validAddress, nil
 }

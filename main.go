@@ -2,6 +2,7 @@ package main
 
 import (
 	"cook-county-geocoder/data"
+	"encoding/json"
 	"fmt"
 	"os"
 )
@@ -12,14 +13,14 @@ func main() {
 	errorChannel := make(chan string)
 	completeChannel := make(chan bool)
 
-	// TODO wire to ES module instead of writing files.
 	go data.CsvReader(fileName, normalizedChannel, errorChannel, completeChannel)
 
-	validAddress, err := os.Create("valid.jsonl")
+	// TODO wire to ES module instead of writing files.
+	validAddress, err := os.OpenFile("data/valid.jsonl", 1, 0666)
 	if err != nil {
 		panic(err)
 	}
-	errors, err := os.Create("errors.jsonl")
+	errors, err := os.OpenFile("data/errors.jsonl", 1, 0666)
 	if err != nil {
 		panic(err)
 	}
@@ -28,8 +29,9 @@ func main() {
 	for completeChannelOpen {
 		select {
 		case n := <-normalizedChannel:
-			str := fmt.Sprint(n)
-			if _, err := validAddress.WriteString(str + "\n"); err != nil {
+			esDoc := data.Address.ToEsAddress(n)
+			b, _ := json.Marshal(esDoc)
+			if _, err := validAddress.WriteString(string(b) + "\n"); err != nil {
 				panic(err)
 			}
 		case e := <-errorChannel:
