@@ -16,7 +16,7 @@ func main() {
 
 
 	// TODO write to a configurable output. Local file or S3.
-	errors, err := os.OpenFile("data/errors.jsonl", 1, 0666)
+	errors, err := os.OpenFile("data/normalize_errors.txt", os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		panic(err)
 	}

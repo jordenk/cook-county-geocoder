@@ -101,8 +101,8 @@ func TestBuildCookCountryRow(t *testing.T) {
 		"18",
 		"19",
 		"20",
-		"longitude",
-		"latitude",
+		"longitude  ",
+		"latitude  ",
 		"23",
 		"24",
 	}

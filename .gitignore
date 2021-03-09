@@ -1,5 +1,5 @@
 # local data files used while prototyping
 Address_Points.csv
-errors.jsonl
+normalize_errors.txt
 valid.jsonl
 .idea/
