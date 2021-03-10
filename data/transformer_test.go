@@ -15,7 +15,7 @@ func TestToEsAddressTransformsAnAddress(t *testing.T) {
 		Longitude:    57.684512,
 		Latitude:     -15.24568,
 	}
-	actual := valid.ToEsAddress()
+	actual := ToEsAddress(valid)
 	expected := EsAddress{
 		Number:       1234,
 		StreetPrefix: "streetPrefix",
