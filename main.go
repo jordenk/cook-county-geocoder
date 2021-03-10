@@ -7,6 +7,16 @@ import (
 )
 
 func main() {
+	// TODO Use ENV VARs or CLI to toggle
+	//dataModule()
+	apiModule()
+}
+
+func apiModule() {
+
+}
+
+func dataModule() {
 	fileName := "data/Address_Points.csv"
 	normalizedChannel := make(chan data.Address)
 	errorChannel := make(chan string)
@@ -44,5 +54,4 @@ func main() {
 	// TODO Requires index to be manually created, for now.
 	client := data.BuildEsClient()
 	data.BulkIndexEs(client, "address", &bigSlice)
-	// TODO log or collect errors 2021/03/09 08:01:28 Indexed [3,625,463] documents with [56,765] errors in 46.814s (77443 docs/sec)
 }
