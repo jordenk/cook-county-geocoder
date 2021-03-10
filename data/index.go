@@ -8,12 +8,10 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 	"log"
-	"sync/atomic"
 	"time"
 )
 
 // Receive normalized structs and index ES.
-
 func BuildEsClient() *elasticsearch.Client {
 	retryBackoff := backoff.NewExponentialBackOff()
 
@@ -48,7 +46,7 @@ func HandleIndex() {
 }
 
 const (
-	WORKERS = 20
+	WORKERS = 5
 )
 
 func BulkIndexEs(es *elasticsearch.Client, indexName string, esAddresses *[]EsAddress) {
@@ -62,7 +60,6 @@ func BulkIndexEs(es *elasticsearch.Client, indexName string, esAddresses *[]EsAd
 	}
 
 	start := time.Now().UTC()
-	var countSuccessful uint64
 
 	for _, esAddress := range *esAddresses {
 		// Encode article to JSON
@@ -74,11 +71,9 @@ func BulkIndexEs(es *elasticsearch.Client, indexName string, esAddresses *[]EsAd
 		err = bulkIndexer.Add(
 			context.Background(),
 			esutil.BulkIndexerItem{
-				Action: "index",
-				Body:   bytes.NewReader(data),
-				OnSuccess: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem) {
-					atomic.AddUint64(&countSuccessful, 1)
-				},
+				Action:    "index",
+				Body:      bytes.NewReader(data),
+				OnSuccess: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem) {},
 				OnFailure: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem, err error) {
 					if err != nil {
 						log.Printf("ERROR: %s", err)
@@ -99,10 +94,11 @@ func BulkIndexEs(es *elasticsearch.Client, indexName string, esAddresses *[]EsAd
 
 	biStats := bulkIndexer.Stats()
 	dur := time.Since(start)
+
 	if biStats.NumFailed > 0 {
 		log.Fatalf(
 			"Indexed [%d] documents with [%d] errors in %s (%d docs/sec)",
-			int64(biStats.NumFlushed),
+			int64(biStats.NumIndexed),
 			int64(biStats.NumFailed),
 			dur.Truncate(time.Millisecond),
 			int64(1000.0/float64(dur/time.Millisecond)*float64(biStats.NumFlushed)),
@@ -110,7 +106,7 @@ func BulkIndexEs(es *elasticsearch.Client, indexName string, esAddresses *[]EsAd
 	} else {
 		log.Printf(
 			"Sucessfuly indexed [%d] documents in %s (%d docs/sec)",
-			int64(biStats.NumFlushed),
+			int64(biStats.NumIndexed),
 			dur.Truncate(time.Millisecond),
 			int64(1000.0/float64(dur/time.Millisecond)*float64(biStats.NumFlushed)),
 		)

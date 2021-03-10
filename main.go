@@ -28,7 +28,7 @@ func main() {
 	for completeChannelOpen {
 		select {
 		case n := <-normalizedChannel:
-			esDoc := data.Address.ToEsAddress(n)
+			esDoc := data.ToEsAddress(n)
 			bigSlice = append(bigSlice, esDoc)
 		case e := <-errorChannel:
 			str := fmt.Sprint(e)
