@@ -8,14 +8,17 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 	"log"
+	"os"
+	"strings"
 	"time"
 )
 
 // Receive normalized structs and index ES.
-func BuildEsClient() *elasticsearch.Client {
+func BuildEsClient(hosts []string) *elasticsearch.Client {
 	retryBackoff := backoff.NewExponentialBackOff()
 
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
+		Addresses:     hosts,
 		RetryOnStatus: []int{502, 503, 504, 429},
 		RetryBackoff: func(i int) time.Duration {
 			if i == 1 {
@@ -31,25 +34,56 @@ func BuildEsClient() *elasticsearch.Client {
 	return es
 }
 
-// TODO create index if it doesn't exist.
-func HandleIndex() {
-	// Check if index exists
+func DoesIndexExist(es *elasticsearch.Client, indexName string) bool {
+	res, err := es.Indices.Exists(
+		[]string{indexName},
+	)
+	if err != nil {
+		log.Printf("Error calling index exists API: %s\n", err)
+	}
+	return res.StatusCode == 200
+}
 
-	//res, err = es.Indices.Create(indexName)
-	//if err != nil {
-	//	log.Fatalf("Cannot create index: %s", err)
-	//}
-	//if res.IsError() {
-	//	log.Fatalf("Cannot create index: %s", res)
-	//}
-	//res.Body.Close()
+func CreateIndex(es *elasticsearch.Client, filePath string, indexName string) {
+	file, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Fatalf("Error reading index file: %s", err)
+	}
+	stripped := strings.Join(strings.Fields(string(file)), "")
+	body := strings.NewReader(stripped)
+	res, err := es.Indices.Create(
+		indexName,
+		es.Indices.Create.WithBody(body),
+		es.Indices.Create.WithWaitForActiveShards("1"),
+	)
+	if err != nil {
+		log.Fatalf("Cannot create index- request creation error: %s", err)
+	}
+	if res.IsError() {
+		log.Fatalf("Cannot create index- response error: %s", res)
+	}
+	log.Printf("Created index %s\n", indexName)
+	_ = res.Body.Close()
+}
+
+func DeleteIndex(es *elasticsearch.Client, indexName string) {
+	res, err := es.Indices.Delete([]string{indexName})
+
+	if err != nil {
+		log.Fatalf("Cannot delete index: %s", err)
+	}
+	if res.IsError() {
+		log.Fatalf("Cannot delete index: %s", res)
+	}
+	log.Printf("Deleted index %s\n", indexName)
+	_ = res.Body.Close()
 }
 
 const (
 	WORKERS = 5
 )
 
-func BulkIndexEs(es *elasticsearch.Client, indexName string, esAddresses *[]EsAddress) {
+func BulkIndexEs(es *elasticsearch.Client, indexName string, esAddresses *[]EsAddress) esutil.BulkIndexerStats {
 	bulkIndexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
 		Index:      indexName,
 		Client:     es,
@@ -111,4 +145,5 @@ func BulkIndexEs(es *elasticsearch.Client, indexName string, esAddresses *[]EsAd
 			int64(1000.0/float64(dur/time.Millisecond)*float64(biStats.NumFlushed)),
 		)
 	}
+	return biStats
 }

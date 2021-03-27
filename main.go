@@ -24,7 +24,6 @@ func dataModule() {
 
 	go data.CsvReader(fileName, normalizedChannel, errorChannel, completeChannel)
 
-
 	// TODO write to a configurable output. Local file or S3.
 	errors, err := os.OpenFile("data/normalize_errors.txt", os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
@@ -52,6 +51,6 @@ func dataModule() {
 	_ = errors.Close()
 
 	// TODO Requires index to be manually created, for now.
-	client := data.BuildEsClient()
+	client := data.BuildEsClient([]string{"localhost:9200"})
 	data.BulkIndexEs(client, "address", &bigSlice)
 }
