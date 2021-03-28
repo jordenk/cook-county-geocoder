@@ -22,11 +22,11 @@ const (
 )
 
 func TestMain(m *testing.M) {
-	log.Println("Setting up Elasticsearch client.")
+	log.Println("Setting up Elasticsearch.")
 
 	endpoint, ciMode := os.LookupEnv("IT_ES_ENDPOINT")
 	if ciMode {
-		// TODO need to wait for service to be running.
+		log.Println("Using ES service for CI.")
 		client = BuildEsClient([]string{fmt.Sprintf("http://%s", endpoint)})
 	} else {
 		es := elastic.Preset(
