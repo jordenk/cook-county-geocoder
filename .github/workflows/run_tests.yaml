@@ -4,6 +4,17 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    services:
+      # Label used to access the service container
+      elasticsearch:
+        # Docker Hub image
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.9.0
+        ports:
+          - 9200:9200
+          - 9300:9300
+        env:
+          xpack.security.enabled: false
+          discovery.type: single-node
     steps:
       - name: Set up Go 1.16
         uses: actions/setup-go@v1
@@ -18,4 +29,5 @@ jobs:
       - name: Test
         env:
           GOPROXY: "https://proxy.golang.org"
+          IT_ES_ENDPOINT: ${{ secrets.IT_ES_ENDPOINT }}
         run: go test -v ./data
