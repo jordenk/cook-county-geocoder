@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"cook-county-geocoder/shared/mapping"
 )
 
 // Receive normalized structs and index ES.
@@ -83,7 +84,7 @@ const (
 	WORKERS = 5
 )
 
-func BulkIndexEs(es *elasticsearch.Client, indexName string, esAddresses *[]EsAddress) esutil.BulkIndexerStats {
+func BulkIndexEs(es *elasticsearch.Client, indexName string, esAddresses *[]mapping.EsAddress) esutil.BulkIndexerStats {
 	bulkIndexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
 		Index:      indexName,
 		Client:     es,

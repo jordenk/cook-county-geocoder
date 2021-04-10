@@ -1,6 +1,9 @@
 package data
 
-import "testing"
+import (
+	"cook-county-geocoder/shared/mapping"
+	"testing"
+)
 
 func TestToEsAddressTransformsAnAddress(t *testing.T) {
 	valid := Address{
@@ -16,7 +19,7 @@ func TestToEsAddressTransformsAnAddress(t *testing.T) {
 		Latitude:     -15.24568,
 	}
 	actual := ToEsAddress(valid)
-	expected := EsAddress{
+	expected := mapping.EsAddress{
 		Number:       1234,
 		StreetPrefix: "streetPrefix",
 		Street:       "street",
@@ -25,7 +28,7 @@ func TestToEsAddressTransformsAnAddress(t *testing.T) {
 		State:        "state",
 		Zip5:         "zip5",
 		ZipLast4:     "zipLast4",
-		LatLong:      LatLong{Latitude: -15.24568, Longitude: 57.684512},
+		LatLong:      mapping.LatLong{Latitude: -15.24568, Longitude: 57.684512},
 	}
 	if actual != expected {
 		t.Errorf("Error transforming Address to EsAddress. actual: %v expected: %v", actual, expected)
