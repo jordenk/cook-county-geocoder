@@ -2,6 +2,7 @@ package main
 
 import (
 	"cook-county-geocoder/data"
+	"cook-county-geocoder/shared/mapping"
 	"fmt"
 	"os"
 )
@@ -31,7 +32,7 @@ func dataModule() {
 	}
 
 	// Quick hack. TODO use a channel instead of building a huge slice.
-	bigSlice := make([]data.EsAddress, 2341113)
+	bigSlice := make([]mapping.EsAddress, 2341113)
 
 	completeChannelOpen := true
 	for completeChannelOpen {
