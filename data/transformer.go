@@ -17,3 +17,7 @@ func ToEsAddress(address Address) mapping.EsAddress {
 		LatLong:      mapping.LatLong{Latitude: address.Latitude, Longitude: address.Longitude},
 	}
 }
+
+//func CalculateId(address Address) {
+//
+//}

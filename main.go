@@ -54,5 +54,5 @@ func dataModule() {
 
 	// TODO Requires index to be manually created, for now.
 	client := data.BuildEsClient([]string{"localhost:9200"})
-	data.BulkIndexEs(client, "address", &bigSlice)
+	data.BulkIndexEs(client, "address", bigSlice)
 }
