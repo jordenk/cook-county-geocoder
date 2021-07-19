@@ -18,6 +18,7 @@ func apiModule() {
 }
 
 func dataModule() {
+	// TODO will need to read from s3
 	fileName := "data/Address_Points.csv"
 	normalizedChannel := make(chan data.Address)
 	errorChannel := make(chan string)

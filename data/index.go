@@ -84,7 +84,7 @@ const (
 	WORKERS = 5
 )
 
-func BulkIndexEs(es *elasticsearch.Client, indexName string, esAddresses *[]mapping.EsAddress) esutil.BulkIndexerStats {
+func BulkIndexEs(es *elasticsearch.Client, indexName string, esAddresses []mapping.EsAddress) esutil.BulkIndexerStats {
 	bulkIndexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
 		Index:      indexName,
 		Client:     es,
@@ -96,7 +96,7 @@ func BulkIndexEs(es *elasticsearch.Client, indexName string, esAddresses *[]mapp
 
 	start := time.Now().UTC()
 
-	for _, esAddress := range *esAddresses {
+	for _, esAddress := range esAddresses {
 		// Encode article to JSON
 		data, err := json.Marshal(esAddress)
 		if err != nil {

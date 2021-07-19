@@ -57,7 +57,7 @@ func TestBulkIndex(t *testing.T) {
 		addresses = append(addresses, buildTestEsAddress(i))
 	}
 
-	stats := BulkIndexEs(client, addressIndex, &addresses)
+	stats := BulkIndexEs(client, addressIndex, addresses)
 
 	// Check the stats for successful indexed count
 	indexedCount := stats.NumIndexed
