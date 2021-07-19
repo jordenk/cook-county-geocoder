@@ -39,7 +39,7 @@ func CsvReader(fileName string, normalizedOutput chan<- Address, errorOutput cha
 		log.Fatal(err)
 	}
 	rawHeader := buildCookCountyRaw(headers)
-	err = checkCookCountyHeaders(&rawHeader)
+	err = checkCookCountyHeaders(rawHeader)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,14 +57,14 @@ func CsvReader(fileName string, normalizedOutput chan<- Address, errorOutput cha
 			log.Fatal(err)
 		}
 		rawCsv := buildCookCountyRaw(record)
-		err = checkRequiredFields(&rawCsv)
+		err = checkRequiredFields(rawCsv)
 		if err != nil {
 			errorOutput <- fmt.Sprintf("Error: %s | Original line: %s", err.Error(), strings.Join(record, ","))
 			errorCount++
 			continue
 		}
 
-		normalizedAddress, err := transformRawToAddress(&rawCsv)
+		normalizedAddress, err := transformRawToAddress(rawCsv)
 		if err != nil {
 			errorOutput <- fmt.Sprintf("Error: %s | Original line: %s", err.Error(), strings.Join(record, ","))
 			errorCount++
@@ -87,7 +87,7 @@ func CsvReader(fileName string, normalizedOutput chan<- Address, errorOutput cha
 
 // checkRequiredFields inspects required fields and combines missing fields into a single error message.
 // Future enhancement- some required fields may be recoverable (state, city, zip5) by combining with other sources.
-func checkRequiredFields(data *RawData) error {
+func checkRequiredFields(data RawData) error {
 	missingFields := make([]string, 0, 7)
 	if data.number == "" {
 		missingFields = append(missingFields, "number")
@@ -119,7 +119,7 @@ func checkRequiredFields(data *RawData) error {
 
 // transformRawToAddress converts RawData strings to the desired data type, eagerly returning errors. If all validation
 // is passed, then an Address is returned.
-func transformRawToAddress(raw *RawData) (Address, error) {
+func transformRawToAddress(raw RawData) (Address, error) {
 	const MaxLocation = 90.0
 	const MinLocation = -90.0
 
@@ -181,7 +181,7 @@ func cleanseAddressNumber(input string) string {
 // when adding new source.
 
 // checkCookCountyHeaders is called on the header row of the Cook County CSV to make sure columns are correctly mapped.
-func checkCookCountyHeaders(data *RawData) error {
+func checkCookCountyHeaders(data RawData) error {
 	expected := RawData{
 		number:       "ADDRNOCOM",
 		streetPrefix: "STNAMEPRD",
@@ -194,10 +194,10 @@ func checkCookCountyHeaders(data *RawData) error {
 		longitude:    "XPOSITION",
 		latitude:     "YPOSITION",
 	}
-	if expected == *data {
+	if expected == data {
 		return nil
 	}
-	return fmt.Errorf("error mapping header columns. expected: %v actual :%v", expected, *data)
+	return fmt.Errorf("error mapping header columns. expected: %v actual :%v", expected, data)
 }
 
 // buildCookCountyRaw contains the column mapping for the Cook County CSV data. It must be called on both the header

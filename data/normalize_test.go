@@ -17,7 +17,7 @@ func TestCheckRequiredFieldsWithValidInput(t *testing.T) {
 		longitude:    "non empty string",
 		latitude:     "non empty string",
 	}
-	err := checkRequiredFields(&validRawInput)
+	err := checkRequiredFields(validRawInput)
 	if err != nil {
 		t.Errorf("Expected no errors when required fields are non empty strings. Found %v", err)
 	}
@@ -36,7 +36,7 @@ func TestCheckRequiredFieldsWithMissingFields(t *testing.T) {
 		longitude:    "",
 		latitude:     "",
 	}
-	if checkRequiredFields(&inputMissingRequired) == nil {
+	if checkRequiredFields(inputMissingRequired) == nil {
 		t.Errorf("Expected error when missing required fields. No error returned.")
 	}
 }
@@ -54,7 +54,7 @@ func TestCookCountyHeadersWithValidInput(t *testing.T) {
 		longitude:    "XPOSITION",
 		latitude:     "YPOSITION",
 	}
-	err := checkCookCountyHeaders(&validHeaders)
+	err := checkCookCountyHeaders(validHeaders)
 	if err != nil {
 		t.Errorf("Expected no errors when headers are in the correct location. Found %v", err)
 	}
@@ -73,7 +73,7 @@ func TestCookCountyHeadersInvalidHeaderLocation(t *testing.T) {
 		longitude:    "longitudeInvalid",
 		latitude:     "latitudeInvalid",
 	}
-	if checkCookCountyHeaders(&inputMissingRequired) == nil {
+	if checkCookCountyHeaders(inputMissingRequired) == nil {
 		t.Errorf("Expected error when passed unexpected headers. No error returned.")
 	}
 }
@@ -142,7 +142,7 @@ func TestTransformRawToAddressWithValidInput(t *testing.T) {
 	}
 
 
-	actual, err := transformRawToAddress(&validRawInput)
+	actual, err := transformRawToAddress(validRawInput)
 	if err != nil {
 		t.Errorf("Expected no errors with valid input. Found %v", err)
 	}
@@ -155,21 +155,21 @@ func TestTransformRawToAddressWithValidInput(t *testing.T) {
 
 func TestTransformRawToAddressWithNumericParsingErrors(t *testing.T) {
 	rawDataBadNumber := buildRawData("bad number", "57.684512", "-15.24568")
-	_, err := transformRawToAddress(&rawDataBadNumber)
+	_, err := transformRawToAddress(rawDataBadNumber)
 
 	if err == nil {
 		t.Errorf("Expected error when passed a RawData struct with an invalid number value. No error returned.")
 	}
 
 	rawDataInvalidLongitude := buildRawData("1234", "bad longitude", "-15.24568")
-	_, err = transformRawToAddress(&rawDataInvalidLongitude)
+	_, err = transformRawToAddress(rawDataInvalidLongitude)
 
 	if err == nil {
 		t.Errorf("Expected error when passed a RawData struct with a invalid longitude value. No error returned.")
 	}
 
 	rawDataInvalidLatitude := buildRawData("bad number", "57.684512", "-15.24.56.8")
-	_, err = transformRawToAddress(&rawDataInvalidLatitude)
+	_, err = transformRawToAddress(rawDataInvalidLatitude)
 
 	if err == nil {
 		t.Errorf("Expected error when passed a RawData struct with a invalid latitude value. No error returned.")
@@ -178,28 +178,28 @@ func TestTransformRawToAddressWithNumericParsingErrors(t *testing.T) {
 
 func TestTransformRawToAddressWithOutOfRangeLatLongValues(t *testing.T) {
 	rawDataLowLatitude := buildRawData("1234", "57.684512", "-90.24568")
-	_, err := transformRawToAddress(&rawDataLowLatitude)
+	_, err := transformRawToAddress(rawDataLowLatitude)
 
 	if err == nil {
 		t.Errorf("Expected error when passed a RawData struct with lower out of range latitude. No error returned.")
 	}
 
 	rawDataHighLatitude := buildRawData("1234", "57.684512", "90.24568")
-	_, err = transformRawToAddress(&rawDataHighLatitude)
+	_, err = transformRawToAddress(rawDataHighLatitude)
 
 	if err == nil {
 		t.Errorf("Expected error when passed a RawData struct with higher out of range latitude. No error returned.")
 	}
 
 	rawDataLowLongitude := buildRawData("1234", "-90.0001", "-15.24568")
-	_, err = transformRawToAddress(&rawDataLowLongitude)
+	_, err = transformRawToAddress(rawDataLowLongitude)
 
 	if err == nil {
 		t.Errorf("Expected error when passed a RawData struct with lower out of range longitude. No error returned.")
 	}
 
 	rawDataHighLongitude := buildRawData("1234", "90.0001", "15.24568")
-	_, err = transformRawToAddress(&rawDataHighLongitude)
+	_, err = transformRawToAddress(rawDataHighLongitude)
 
 	if err == nil {
 		t.Errorf("Expected error when passed a RawData struct with higher out of range longitude. No error returned.")

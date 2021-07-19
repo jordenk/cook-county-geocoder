@@ -2,6 +2,7 @@ package main
 
 import (
 	"cook-county-geocoder/data"
+	"cook-county-geocoder/shared/mapping"
 	"fmt"
 	"os"
 )
@@ -17,6 +18,7 @@ func apiModule() {
 }
 
 func dataModule() {
+	// TODO will need to read from s3
 	fileName := "data/Address_Points.csv"
 	normalizedChannel := make(chan data.Address)
 	errorChannel := make(chan string)
@@ -31,7 +33,7 @@ func dataModule() {
 	}
 
 	// Quick hack. TODO use a channel instead of building a huge slice.
-	bigSlice := make([]data.EsAddress, 2341113)
+	bigSlice := make([]mapping.EsAddress, 2341113)
 
 	completeChannelOpen := true
 	for completeChannelOpen {
@@ -52,5 +54,5 @@ func dataModule() {
 
 	// TODO Requires index to be manually created, for now.
 	client := data.BuildEsClient([]string{"localhost:9200"})
-	data.BulkIndexEs(client, "address", &bigSlice)
+	data.BulkIndexEs(client, "address", bigSlice)
 }

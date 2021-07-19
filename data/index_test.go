@@ -2,6 +2,7 @@ package data
 
 import (
 	"bytes"
+	"cook-county-geocoder/shared/mapping"
 	"encoding/json"
 	"fmt"
 	"github.com/elastic/go-elasticsearch/v7"
@@ -51,12 +52,12 @@ func TestMain(m *testing.M) {
 func TestBulkIndex(t *testing.T) {
 	beforeEach()
 
-	var addresses []EsAddress
+	var addresses []mapping.EsAddress
 	for i := 100; i < 10100; i++ {
 		addresses = append(addresses, buildTestEsAddress(i))
 	}
 
-	stats := BulkIndexEs(client, addressIndex, &addresses)
+	stats := BulkIndexEs(client, addressIndex, addresses)
 
 	// Check the stats for successful indexed count
 	indexedCount := stats.NumIndexed
@@ -78,11 +79,11 @@ func beforeEach() {
 	if DoesIndexExist(client, addressIndex) {
 		DeleteIndex(client, addressIndex)
 	}
-	CreateIndex(client, "../es_index_v_0_1.json", addressIndex)
+	CreateIndex(client, "../shared/mapping/es_index_v_0_1.json", addressIndex)
 }
 
-func buildTestEsAddress(number int) EsAddress {
-	return EsAddress{
+func buildTestEsAddress(number int) mapping.EsAddress {
+	return mapping.EsAddress{
 		Number:       number,
 		StreetPrefix: "W",
 		Street:       "STREET NAME",
@@ -91,7 +92,7 @@ func buildTestEsAddress(number int) EsAddress {
 		State:        "IL",
 		Zip5:         "60606",
 		ZipLast4:     "1234",
-		LatLong: LatLong{
+		LatLong: mapping.LatLong{
 			Longitude: 15.45,
 			Latitude:  50.55,
 		},
@@ -135,5 +136,5 @@ type EsSummary struct {
 		Total struct {
 			ResultCount uint64 `json:"value"`
 		} `json:"total"`
-	}`json:"hits"`
+	} `json:"hits"`
 }
